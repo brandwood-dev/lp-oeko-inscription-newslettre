@@ -44,12 +44,29 @@ export default function ContactForm() {
     setIsSubmitting(true);
 
     try {
+      // Capture the source URL (parent page if in iframe, otherwise current page)
+      let sourceUrl = window.location.href;
+      try {
+        // If embedded in iframe, get parent URL
+        if (window.parent !== window && window.parent.location.href) {
+          sourceUrl = window.parent.location.href;
+        }
+      } catch (e) {
+        // Cross-origin iframe - use document.referrer as fallback
+        if (document.referrer) {
+          sourceUrl = document.referrer;
+        }
+      }
+
       const response = await fetch('/api/submit-form', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          sourceUrl, // Add the source URL to the payload
+        }),
       });
 
       const data = await response.json();

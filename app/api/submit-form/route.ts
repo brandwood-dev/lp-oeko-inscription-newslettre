@@ -31,6 +31,8 @@ const formSchema = z.object({
   rgpdConsent: z.boolean().refine((val) => val === true, {
     message: 'Le consentement RGPD est requis',
   }),
+  // Source URL (for tracking where the form was submitted from)
+  sourceUrl: z.string().optional(),
   // Honeypot field for spam detection
   website: z.string().optional(),
 });
@@ -67,6 +69,9 @@ export async function POST(request: NextRequest) {
       message: validatedData.message || '',
     };
 
+    // Get source URL (defaults to a standard value if not provided)
+    const sourceUrl = validatedData.sourceUrl || 'LP RAVALEMENT DE FAÇADE 2026';
+
     // Execute all 3 actions in parallel for better performance
     const results = await Promise.allSettled([
       // Action 1: Send email notification
@@ -75,8 +80,8 @@ export async function POST(request: NextRequest) {
         throw new Error('Email sending failed');
       }),
 
-      // Action 2: Add to Brevo CRM
-      brevoService.addOrUpdateContact(formData).catch((error) => {
+      // Action 2: Add to Brevo CRM (with source URL)
+      brevoService.addOrUpdateContact(formData, sourceUrl).catch((error) => {
         console.error('Brevo service error:', formatError(error));
         throw new Error('Brevo contact creation failed');
       }),

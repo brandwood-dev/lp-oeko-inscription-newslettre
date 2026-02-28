@@ -13,7 +13,7 @@ export class BrevoService {
     this.apiInstance.setApiKey(0, this.apiKey);
   }
 
-  async addOrUpdateContact(data: EmailData): Promise<void> {
+  async addOrUpdateContact(data: EmailData, sourceUrl?: string): Promise<void> {
     const listId = Number(process.env.BREVO_LIST_ID);
 
     if (!listId) {
@@ -37,6 +37,9 @@ export class BrevoService {
       return cleaned;
     };
 
+    // Use provided sourceUrl or default to the original value
+    const source = sourceUrl || 'LP RAVALEMENT DE FAÇADE 2026';
+
     // First attempt: Try with all custom attributes
     const createContactWithCustom = new CreateContact();
     createContactWithCustom.email = data.email;
@@ -48,7 +51,7 @@ export class BrevoService {
       VILLE: data.city,
       TYPE_BIEN: data.houseType === 'maison' ? 'Maison individuelle' : 'Immeuble',
       MESSAGE: data.message || '',
-      SOURCE: 'LP RAVALEMENT DE FAÇADE 2026',
+      SOURCE: source,
     };
     createContactWithCustom.listIds = [listId];
     createContactWithCustom.updateEnabled = true;
