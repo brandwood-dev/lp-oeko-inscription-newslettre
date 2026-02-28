@@ -20,16 +20,15 @@ const contactFormSchema = z.object({
   telephoneDomicile: z.string().optional(),
   accepteMarketing: z.boolean(),
 
+  // Source URL (for tracking where the form was submitted from)
+  sourceUrl: z.string().optional(),
+
   // Honeypot field for spam detection
   website: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
   try {
-    // Récupérer l'URL d'origine pour la SOURCE
-    const origin = request.headers.get('origin') || request.headers.get('referer') || 'http://localhost:3000';
-    const sourceUrl = origin.replace(/\/$/, ''); // Enlever le / final si présent
-
     // Parse request body
     const body = await request.json();
 
@@ -45,6 +44,14 @@ export async function POST(request: NextRequest) {
 
     // Validate form data
     const validatedData = contactFormSchema.parse(body);
+
+    // Get source URL from request body or fallback to headers
+    const sourceUrl = validatedData.sourceUrl ||
+                     request.headers.get('origin') ||
+                     request.headers.get('referer') ||
+                     'http://localhost:3000';
+
+    console.log('🎯 Source URL received:', sourceUrl);
 
     // Initialize Brevo service
     const brevoService = new BrevoContactService();

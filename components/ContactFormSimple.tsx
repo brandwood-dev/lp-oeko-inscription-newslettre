@@ -63,12 +63,42 @@ export default function ContactFormSimple() {
     setIsSubmitting(true);
 
     try {
+      // Capture the source URL
+      // Priority: 1. Current page URL (window.location.href)
+      //           2. Parent page URL (if in iframe)
+      //           3. Referrer (if cross-origin iframe)
+      let sourceUrl = window.location.href;
+
+      // Log for debugging
+      console.log('📍 Current URL:', window.location.href);
+      console.log('📍 Referrer:', document.referrer);
+      console.log('📍 Is iframe:', window.parent !== window);
+
+      try {
+        // If embedded in iframe, try to get parent URL
+        if (window.parent !== window && window.parent.location.href) {
+          sourceUrl = window.parent.location.href;
+          console.log('✅ Using parent URL:', sourceUrl);
+        }
+      } catch (e) {
+        // Cross-origin iframe - use document.referrer as fallback
+        if (document.referrer) {
+          sourceUrl = document.referrer;
+          console.log('✅ Using referrer:', sourceUrl);
+        }
+      }
+
+      console.log('🎯 Final source URL to send:', sourceUrl);
+
       const response = await fetch('/api/submit-contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          sourceUrl, // Add the source URL to the payload
+        }),
       });
 
       const data = await response.json();
