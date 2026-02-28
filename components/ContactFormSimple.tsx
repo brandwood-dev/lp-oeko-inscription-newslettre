@@ -156,8 +156,23 @@ export default function ContactFormSimple() {
     setIsProcessing(true);
     setResults([]);
 
+    // Capture the source URL (same logic as manual form)
+    let sourceUrl = window.location.href;
+    try {
+      if (window.parent !== window && window.parent.location.href) {
+        sourceUrl = window.parent.location.href;
+      }
+    } catch (e) {
+      if (document.referrer) {
+        sourceUrl = document.referrer;
+      }
+    }
+
+    console.log('📦 Excel Import - Source URL:', sourceUrl);
+
     const formDataUpload = new FormData();
     formDataUpload.append('file', file);
+    formDataUpload.append('sourceUrl', sourceUrl);
 
     try {
       const response = await fetch('/api/import-excel', {

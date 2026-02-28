@@ -80,10 +80,6 @@ function validateContact(formData: any): string[] {
 export async function POST(request: NextRequest) {
   const encoder = new TextEncoder();
 
-  // Récupérer l'URL d'origine pour la SOURCE
-  const origin = request.headers.get('origin') || request.headers.get('referer') || 'http://localhost:3000';
-  const sourceUrl = origin.replace(/\/$/, ''); // Enlever le / final si présent
-
   // Créer un stream pour envoyer les résultats en temps réel
   const stream = new ReadableStream({
     async start(controller) {
@@ -97,6 +93,14 @@ export async function POST(request: NextRequest) {
           controller.close();
           return;
         }
+
+        // Get source URL from FormData or fallback to headers
+        const sourceUrl = (formData.get('sourceUrl') as string) ||
+                         request.headers.get('origin') ||
+                         request.headers.get('referer') ||
+                         'http://localhost:3000';
+
+        console.log('📦 Import Excel - Source URL received:', sourceUrl);
 
         // Lire le contenu du fichier
         const arrayBuffer = await file.arrayBuffer();
